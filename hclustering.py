@@ -62,8 +62,8 @@ def hierarchical_clustering(data, threshold=None):
 
         new_cluster = {"points": new_points, "dendrogram": new_dendrogram}
 
-        clusters.pop(i)
         clusters.pop(j)
+        clusters.pop(i)
         clusters.append(new_cluster)
 
     dendrogram = clusters[0]["dendrogram"]
