@@ -1,11 +1,9 @@
 import json
 import sys
-from kmeans import load_data, compute_dist, visualize_clusters
+from kmeans import load_data, compute_dist
 
 def compute_distance_matrix(data):
-    """ Compute dist matrix for data given (dataset).
-        Returs:
-        2-D list where [i][j] is dist between data[i] and data[j]"""
+    """Compute dist matrix for data given"""
     n = len(data)
     distance_matrix = [[0.0] * n for i in range(n)]
     for i in range(n):
@@ -18,21 +16,6 @@ def compute_distance_matrix(data):
 
 
 def hierarchical_clustering(data, threshold=None):
-    """
-    Performs agglomerative hierarchical clustering on the data.
-    Options:
-      - Different linkage methods (e.g., single, complete, average) can be implemented.
-    Returns:
-      dendrogram: A JSON-compatible structure representing the clustering hierarchy.
-      clusters: The final clusters after cutting the dendrogram at the threshold (if provided).
-    TODO:
-      - Implement the clustering procedure.
-      - Create a JSON output for the dendrogram.
-      - If threshold is provided, compute and return clusters.
-    """
-    # TODO: Initialize clusters as individual points
-    # TODO: Compute distances and merge clusters iteratively
-    # TODO: Build dendrogram structure (each node: type, height, and nodes or data)
     # compute pairwise distance matrix for each individual datapoints
     point_distance_matrix = compute_distance_matrix(data)
     n = len(data)
@@ -125,16 +108,9 @@ def output_dendrogram(dendrogram):
         f.close()
 
 def main():
-    """
-    1. Parse args
-    2. load data
-    3. compute distacnce matrix
-    4. run hierarchical clustering algo
-    5. output dendrogram and clusters provided a thresh
-    """
     args = len(sys.argv)
     if args != 2 and args != 3: # Add more args if needed and update this
-        print("Usage: python kmeans.py <Filename> [<Threshold>]")
+        print("Usage: python hclustering.py <Filename> [<Threshold>]")
         exit()
     filename = sys.argv[1]
     if args == 3:

@@ -1,10 +1,10 @@
 import sys
+import numpy as np
 from kmeans import load_data, compute_dist
 
 def radius_find(data, point_index, epsilon):
     """Find all points within the epsilon radius of the point
-    at index point_index.
-    Return a list of indices representing neighbors"""
+    at index point_index."""
     neighbors = []
     for i, point in enumerate(data):
         if compute_dist(data[point_index], point) <= epsilon:
@@ -12,17 +12,7 @@ def radius_find(data, point_index, epsilon):
     return neighbors
 
 def expand_cluster(data, labels, point_index, neighbors, cluster_id, epsilon, min_points):
-    """
-    Expand new cluster by recursively adding density-reachable points
-    Params:
-    data: list of data points
-    labels: current cluster labels for each point (0: unvisited, -1: noise, >0: cluster ID)
-    point_index: index of the point we are expanding
-    neighbors: list of indices representing neighbors
-    cluster_id: current cluster id to assign
-    epsilon: radius
-    min_points: minimum number of points to form a core point
-    """
+    """Expand new cluster by recursively adding density-reachable points"""
     labels[point_index] = cluster_id
     j = 0
     while j <  len(neighbors):
@@ -41,10 +31,20 @@ def expand_cluster(data, labels, point_index, neighbors, cluster_id, epsilon, mi
                         neighbors.append(neigh)
         j += 1
 
+def get_clusters_from_labels(data, labels):
+    """Returns a dictionary representing the clusters from the points and labels"""
+    clusters = {}
+    for i, label in enumerate(labels):
+        if label == -1:  # noise label
+            continue
+        if label not in clusters:
+            clusters[label] = []
+        clusters[label].append(data[i])
+    return clusters
+
+
 def dbscan(data, epsilon, min_points):
-    """dbscan algo.
-    Returns labels (list of cluster labels for each datapoint. noise is -1, cluster labels are 1+)
-    """
+    """dbscan algo"""
     # 0 inds unvisited. later noise will be -1
     labels = [0] * len(data)
     cluster_id = 0
@@ -71,8 +71,44 @@ def main():
     data = load_data(filename)
     labels = dbscan(data, epsilon, num_points)
 
-    print("Cluster labels:")
-    for i, label in enumerate(labels):
-        print(f"Point {i}: Cluster {label}")
+    clusters = get_clusters_from_labels(data, labels)
+
+    for i, points in clusters.items():
+        if len(points) > 0:
+            centroid = np.mean(points, axis=0)
+            distances = [compute_dist(point, centroid) for point in points]
+            max_d = max(distances)
+            min_d = min(distances)
+            avg_d = sum(distances) / len(distances)
+            sse = sum(d ** 2 for d in distances)
+        else:
+            centroid = "n/a"
+            max_d = "n/a"
+            min_d = "n/a"
+            avg_d = "n/a"
+            sse = "n/a"
+        print(f"Cluster {i}:")
+        print(f"  Center: {centroid}")
+        print(f"  Max distance to center: {max_d}")
+        print(f"  Min distance to center: {min_d}")
+        print(f"  Avg distance to center: {avg_d}")
+        print(f"  SSE: {sse}")
+        print(f"  {len(points)} Points: {points}")
+
+    # report outliers
+    outliers = [data[i] for i in range(len(data)) if labels[i] == -1]
+    print("Outliers:")
+    print(f"  Number of outliers: {len(outliers)}")
+    print(f"  Percentage of outliers: {len(outliers) / len(data) * 100}%")
+    print(f"  Outlier points:")
+
+    count = 0
+    for point in outliers:
+        print(f"  {point}")
+        count += 1
+        if count == 20:  # print only first 20 outliers
+            print("  ...")
+            break
+
 if __name__ == "__main__":
     main()
